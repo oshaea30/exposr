@@ -21,17 +21,6 @@ const BottomCTA = () => (
         </div>
       </div>
     </div>
-    
-    {/* Admin Link */}
-    <div className="absolute bottom-4 right-4">
-      <a
-        href="#admin"
-        className="text-xs text-white/70 hover:text-white underline"
-        title="Admin Dashboard"
-      >
-        Admin
-      </a>
-    </div>
   </section>
 );
 

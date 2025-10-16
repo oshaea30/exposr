@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -30,7 +30,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <button
-                  onClick={() => window.location.hash = ''}
+                  onClick={() => (window.location.hash = "")}
                   className="text-gray-300 hover:text-white text-sm transition-colors"
                 >
                   Home
@@ -38,15 +38,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => window.location.hash = 'admin'}
-                  className="text-gray-300 hover:text-white text-sm transition-colors"
-                >
-                  Admin
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => window.location.hash = 'delete'}
+                  onClick={() => (window.location.hash = "delete")}
                   className="text-gray-300 hover:text-white text-sm transition-colors"
                 >
                   Data Deletion
@@ -61,7 +53,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <button
-                  onClick={() => handleLegalClick('privacy')}
+                  onClick={() => handleLegalClick("privacy")}
                   className="text-gray-300 hover:text-white text-sm transition-colors"
                 >
                   Privacy Policy
@@ -69,7 +61,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => handleLegalClick('terms')}
+                  onClick={() => handleLegalClick("terms")}
                   className="text-gray-300 hover:text-white text-sm transition-colors"
                 >
                   Terms of Service
@@ -87,13 +79,13 @@ const Footer = () => {
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <button
-                onClick={() => handleLegalClick('privacy')}
+                onClick={() => handleLegalClick("privacy")}
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
                 Privacy
               </button>
               <button
-                onClick={() => handleLegalClick('terms')}
+                onClick={() => handleLegalClick("terms")}
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
                 Terms
