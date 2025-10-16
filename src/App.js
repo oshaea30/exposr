@@ -6,6 +6,8 @@ import BottomCTA from './components/BottomCTA';
 import DataAdminPage from './components/DataAdminPage';
 import DataDeletionPage from './components/DataDeletionPage';
 import SharedAnalysisPage from './components/SharedAnalysisPage';
+import LegalSection from './components/LegalSection';
+import Footer from './components/Footer';
 import AdminAuth from './components/AdminAuth';
 import { scrollToElement, isAdminAuthenticated, clearAdminSession } from './utils';
 
@@ -27,6 +29,10 @@ const App = () => {
       } else if (hash === 'delete') {
         setCurrentPage('delete');
         setSharedAnalysisId(null);
+      } else if (hash.startsWith('legal/')) {
+        setCurrentPage('legal');
+        setSharedAnalysisId(null);
+        setIsAdminAuth(false);
       } else if (hash.startsWith('share/')) {
         // Extract analysis ID from share/ANALYSIS_ID
         const analysisId = hash.split('/')[1];
@@ -103,12 +109,18 @@ const App = () => {
     return <DataDeletionPage />;
   }
 
+  // Legal page
+  if (currentPage === 'legal') {
+    return <LegalSection />;
+  }
+
   // Main landing page
   return (
     <Layout>
       <HeroSection onScrollToUpload={handleScrollToUpload} />
       <AnalysisSection />
       <BottomCTA />
+      <Footer />
     </Layout>
   );
 };
