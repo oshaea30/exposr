@@ -105,59 +105,59 @@ const LegalSection = () => {
                 <li>Opt-out of certain data processing</li>
                 <li>Withdraw consent at any time</li>
               </ul>
-                <p className="text-gray-700 leading-relaxed mt-3">
-                  Contact us at{" "}
+              <p className="text-gray-700 leading-relaxed mt-3">
+                Contact us at{" "}
+                <a
+                  href="https://www.criterralabs.com/contact"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  our contact page
+                </a>{" "}
+                to exercise your rights.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Contact Information
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                If you have questions about this Privacy Policy, please contact
+                us:
+              </p>
+              <div className="mt-3 p-4 bg-gray-50 rounded-lg">
+                <p className="text-gray-700">
+                  <strong>Website:</strong>{" "}
+                  <a
+                    href="https://www.criterralabs.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    www.criterralabs.com
+                  </a>
+                </p>
+                <p className="text-gray-700">
+                  <strong>Contact:</strong>{" "}
                   <a
                     href="https://www.criterralabs.com/contact"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 underline"
                   >
-                    our contact page
-                  </a>{" "}
-                  to exercise your rights.
+                    Contact Page
+                  </a>
                 </p>
+                <p className="text-gray-700">
+                  <strong>Company:</strong> Criterra Labs
+                </p>
+                <p className="text-gray-700">
+                  <strong>Service:</strong> Exposr
+                </p>
+              </div>
             </section>
-
-              <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Contact Information
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  If you have questions about this Privacy Policy, please contact
-                  us:
-                </p>
-                <div className="mt-3 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Website:</strong>{" "}
-                    <a
-                      href="https://www.criterralabs.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline"
-                    >
-                      www.criterralabs.com
-                    </a>
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Contact:</strong>{" "}
-                    <a
-                      href="https://www.criterralabs.com/contact"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline"
-                    >
-                      Contact Page
-                    </a>
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Company:</strong> Criterra Labs
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Service:</strong> Exposr
-                  </p>
-                </div>
-              </section>
           </div>
         </div>
       );
@@ -244,44 +244,44 @@ const LegalSection = () => {
               </p>
             </section>
 
-              <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Contact Information
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  For questions about these Terms, please contact us:
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Contact Information
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                For questions about these Terms, please contact us:
+              </p>
+              <div className="mt-3 p-4 bg-gray-50 rounded-lg">
+                <p className="text-gray-700">
+                  <strong>Website:</strong>{" "}
+                  <a
+                    href="https://www.criterralabs.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    www.criterralabs.com
+                  </a>
                 </p>
-                <div className="mt-3 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Website:</strong>{" "}
-                    <a
-                      href="https://www.criterralabs.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline"
-                    >
-                      www.criterralabs.com
-                    </a>
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Contact:</strong>{" "}
-                    <a
-                      href="https://www.criterralabs.com/contact"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline"
-                    >
-                      Contact Page
-                    </a>
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Company:</strong> Criterra Labs
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Service:</strong> Exposr
-                  </p>
-                </div>
-              </section>
+                <p className="text-gray-700">
+                  <strong>Contact:</strong>{" "}
+                  <a
+                    href="https://www.criterralabs.com/contact"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Contact Page
+                  </a>
+                </p>
+                <p className="text-gray-700">
+                  <strong>Company:</strong> Criterra Labs
+                </p>
+                <p className="text-gray-700">
+                  <strong>Service:</strong> Exposr
+                </p>
+              </div>
+            </section>
           </div>
         </div>
       );
@@ -291,14 +291,37 @@ const LegalSection = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-lg">
-        {/* Header */}
+        {/* Navigation Header */}
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Legal Information
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Please review our privacy policy and terms of service
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <button
+                onClick={() => (window.location.hash = "")}
+                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-2"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back to Home
+              </button>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Legal Information
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Please review our privacy policy and terms of service
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
