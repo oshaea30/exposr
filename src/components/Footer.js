@@ -13,14 +13,28 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Criterra Labs</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              <a
+                href="https://www.criterralabs.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-blue-300 transition-colors"
+              >
+                Criterra Labs
+              </a>
+            </h3>
             <p className="text-gray-300 text-sm leading-relaxed">
               AI-powered image analysis and insights for modern businesses.
             </p>
             <div className="mt-4">
-              <p className="text-gray-300 text-sm">
-                <strong>Email:</strong> Criterralabs@gmail.com
-              </p>
+              <a
+                href="https://www.criterralabs.com/contact"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-blue-300 text-sm transition-colors"
+              >
+                Contact Us →
+              </a>
             </div>
           </div>
 
