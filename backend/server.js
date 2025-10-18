@@ -32,7 +32,10 @@ function isAllowedOrigin(origin) {
   if (!origin) return false;
 
   // Development - allow localhost
-  if (origin === "http://localhost:3000" && process.env.NODE_ENV === "development") {
+  if (
+    origin === "http://localhost:3000" &&
+    process.env.NODE_ENV === "development"
+  ) {
     return true;
   }
 
@@ -217,7 +220,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
     // Call Hugging Face API for AI detection
     const aiDetectionResult = await hf.imageClassification({
       data: req.file.buffer,
-      model: "Smogy/SMOGY-Ai-images-detector"
+      model: "Smogy/SMOGY-Ai-images-detector",
     });
 
     // Parse results (returns array like [{label: "ai", score: 0.95}, {label: "real", score: 0.05}])
@@ -225,7 +228,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
     const confidence = Math.round(aiDetectionResult[0].score * 100);
 
     const analysisId = Math.random().toString(36).substring(2, 15);
-    
+
     const analysisResult = {
       analysisId: analysisId,
       filename: req.file.originalname,
@@ -239,7 +242,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       fileSizeKB: Math.round(req.file.size / 1024),
       deleteCode: Math.random().toString(36).substring(2, 15),
       explanation: `SMOGY AI detector analyzed this image with ${confidence}% confidence.`,
-      detectionDetails: aiDetectionResult // Include full detection results
+      detectionDetails: aiDetectionResult, // Include full detection results
     };
 
     // Save analysis to Airtable with Cloudinary image upload
@@ -253,7 +256,10 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
         size: req.file.size,
         type: req.file.mimetype,
       });
-      console.log("🏷️ Using Analysis_ID for Airtable:", analysisResult.analysisId);
+      console.log(
+        "🏷️ Using Analysis_ID for Airtable:",
+        analysisResult.analysisId
+      );
 
       // Upload image to Cloudinary first
       console.log("☁️ Uploading image to Cloudinary...");

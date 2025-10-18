@@ -9,6 +9,7 @@ By accessing and using the Exposr application ("Service") operated by Criterra L
 ## Description of Service
 
 Exposr is an AI-powered image analysis application that provides:
+
 - **Image analysis** and processing capabilities
 - **Data insights** and reporting features
 - **User feedback** and interaction tools
@@ -17,12 +18,15 @@ Exposr is an AI-powered image analysis application that provides:
 ## User Accounts and Responsibilities
 
 ### Account Creation
+
 - You may use the Service without creating an account
 - **Admin accounts** are restricted and require authorization
 - You are responsible for maintaining account security
 
 ### User Responsibilities
+
 You agree to:
+
 - **Provide accurate** information when required
 - **Maintain security** of any credentials
 - **Use the Service** in compliance with applicable laws
@@ -32,13 +36,16 @@ You agree to:
 ## Acceptable Use Policy
 
 ### Permitted Uses
+
 - **Personal and commercial** use of analysis features
 - **Legitimate business** purposes
 - **Educational** and research activities
 - **Feedback** and improvement suggestions
 
 ### Prohibited Uses
+
 You may NOT use the Service to:
+
 - **Upload illegal** or harmful content
 - **Violate any laws** or regulations
 - **Infringe on intellectual property** rights
@@ -50,16 +57,19 @@ You may NOT use the Service to:
 ## Content and Intellectual Property
 
 ### Your Content
+
 - You retain ownership of content you upload
 - You grant us license to process and analyze your content
 - You are responsible for ensuring you have rights to upload content
 
 ### Our Content
+
 - The Service and its features are owned by Criterra Labs
 - **AI models** and analysis algorithms are proprietary
 - **Software code** and design are protected by copyright
 
 ### Third-Party Content
+
 - We may use third-party services (Airtable, Cloudinary, Vercel)
 - These services have their own terms and conditions
 - We are not responsible for third-party content or services
@@ -74,11 +84,13 @@ You may NOT use the Service to:
 ## Service Availability and Modifications
 
 ### Availability
+
 - We strive to maintain high service availability
 - **Downtime** may occur for maintenance or updates
 - We are not liable for temporary service interruptions
 
 ### Modifications
+
 - We may modify or discontinue the Service at any time
 - **Features** may be added, changed, or removed
 - We will provide reasonable notice for significant changes
@@ -93,12 +105,14 @@ You may NOT use the Service to:
 ## Disclaimers and Limitations
 
 ### Service Disclaimers
+
 - The Service is provided "as is" without warranties
 - **AI analysis** results are for informational purposes
 - We do not guarantee accuracy or completeness
 - **Use at your own risk**
 
 ### Limitation of Liability
+
 - We are not liable for indirect or consequential damages
 - **Maximum liability** is limited to the amount you paid (if any)
 - We are not responsible for third-party actions or content
@@ -106,6 +120,7 @@ You may NOT use the Service to:
 ## Indemnification
 
 You agree to indemnify and hold harmless Criterra Labs from any claims, damages, or expenses arising from:
+
 - Your use of the Service
 - Your violation of these Terms
 - Your violation of any laws or regulations
@@ -114,10 +129,12 @@ You agree to indemnify and hold harmless Criterra Labs from any claims, damages,
 ## Termination
 
 ### By You
+
 - You may stop using the Service at any time
 - **Account deletion** may be requested via email
 
 ### By Us
+
 - We may terminate access for violations of these Terms
 - We may discontinue the Service with reasonable notice
 - **Data retention** policies apply after termination
@@ -125,10 +142,12 @@ You agree to indemnify and hold harmless Criterra Labs from any claims, damages,
 ## Governing Law and Disputes
 
 ### Governing Law
+
 - These Terms are governed by the laws of [Jurisdiction]
 - **Disputes** will be resolved in [Jurisdiction] courts
 
 ### Dispute Resolution
+
 - **Good faith** efforts to resolve disputes informally
 - **Mediation** or arbitration may be required
 - **Class action** waivers may apply
@@ -162,4 +181,4 @@ By using the Service, you acknowledge that you have read, understood, and agree 
 
 ---
 
-*These Terms of Service are effective as of the date listed above and will remain in effect until modified or terminated.*
+_These Terms of Service are effective as of the date listed above and will remain in effect until modified or terminated._

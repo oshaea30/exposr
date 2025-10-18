@@ -13,6 +13,8 @@ yarn.lock
 .env.production
 .env.test
 .env.staging
+.env.backup*
+*.env.backup*
 
 # Backend specific
 backend/.env
