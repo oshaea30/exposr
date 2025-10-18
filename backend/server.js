@@ -5,6 +5,7 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const Airtable = require("airtable");
 const { v2: cloudinary } = require("cloudinary");
+const { HfInference } = require("@huggingface/inference");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -20,12 +21,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Initialize Hugging Face
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
 // Security middleware
 app.use(helmet());
 
 // CORS middleware - Bulletproof implementation with Vercel preview support
 function isAllowedOrigin(origin) {
   if (!origin) return false;
+
+  // Development - allow localhost
+  if (origin === "http://localhost:3000" && process.env.NODE_ENV === "development") {
+    return true;
+  }
 
   // Production domains
   const prod = new Set([
@@ -38,21 +47,6 @@ function isAllowedOrigin(origin) {
   const isPreview =
     origin.startsWith("https://exposrmvp-") &&
     origin.includes(".oshaea30s-projects.vercel.app");
-
-  // Debug logging - FORCE REDEPLOY TEST
-  console.log(`🔍 CORS Debug - Origin: ${origin}`);
-  console.log(
-    `🔍 CORS Debug - Starts with exposrmvp-: ${origin.startsWith(
-      "https://exposrmvp-"
-    )}`
-  );
-  console.log(
-    `🔍 CORS Debug - Includes .oshaea30s-projects.vercel.app: ${origin.includes(
-      ".oshaea30s-projects.vercel.app"
-    )}`
-  );
-  console.log(`🔍 CORS Debug - Is Preview: ${isPreview}`);
-  console.log(`🔍 CORS Debug - FORCE REDEPLOY TEST - ${Date.now()}`);
 
   return isPreview;
 }
@@ -206,7 +200,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       success: false,
       error: "Request timeout - analysis took too long",
     });
-  }, 30000); // 30 second timeout
+  }, 60000); // 60 second timeout for AI analysis
 
   try {
     // Validate file upload
@@ -218,20 +212,34 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       });
     }
 
-    // For now, return mock analysis data with image storage
-    const mockResult = {
-      analysisId: Math.random().toString(36).substring(2, 15),
+    console.log("🤖 Analyzing image with Hugging Face SMOGY detector...");
+
+    // Call Hugging Face API for AI detection
+    const aiDetectionResult = await hf.imageClassification({
+      data: req.file.buffer,
+      model: "Smogy/SMOGY-Ai-images-detector"
+    });
+
+    // Parse results (returns array like [{label: "ai", score: 0.95}, {label: "real", score: 0.05}])
+    const isAI = aiDetectionResult[0].label.toLowerCase() === "ai";
+    const confidence = Math.round(aiDetectionResult[0].score * 100);
+
+    const analysisId = Math.random().toString(36).substring(2, 15);
+    
+    const analysisResult = {
+      analysisId: analysisId,
       filename: req.file.originalname,
-      confidence: Math.floor(Math.random() * 40) + 60, // 60-100%
-      verdict: Math.random() > 0.5 ? "Likely AI-generated" : "Likely authentic",
-      isAI: Math.random() > 0.5,
+      confidence: confidence,
+      verdict: isAI ? "AI-generated" : "Likely authentic",
+      isAI: isAI,
       timestamp: new Date().toISOString(),
       fileFormat: req.file.mimetype,
-      imageWidth: 1024, // Mock values
+      imageWidth: 1024, // Would need image-size package for actual dimensions
       imageHeight: 1024,
       fileSizeKB: Math.round(req.file.size / 1024),
       deleteCode: Math.random().toString(36).substring(2, 15),
-      explanation: "Analysis detected patterns in the image content.",
+      explanation: `SMOGY AI detector analyzed this image with ${confidence}% confidence.`,
+      detectionDetails: aiDetectionResult // Include full detection results
     };
 
     // Save analysis to Airtable with Cloudinary image upload
@@ -245,24 +253,17 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
         size: req.file.size,
         type: req.file.mimetype,
       });
-      console.log("🏷️ Using Analysis_ID for Airtable:", mockResult.analysisId);
+      console.log("🏷️ Using Analysis_ID for Airtable:", analysisResult.analysisId);
 
       // Upload image to Cloudinary first
       console.log("☁️ Uploading image to Cloudinary...");
-      console.log("🔍 Debug - Cloudinary config check:");
-      console.log("  Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
-      console.log("  API Key:", process.env.CLOUDINARY_API_KEY);
-      console.log(
-        "  API Secret length:",
-        process.env.CLOUDINARY_API_SECRET?.length
-      );
 
       const uploadResult = await cloudinary.uploader.upload(
         `data:${req.file.mimetype};base64,${req.file.buffer.toString(
           "base64"
         )}`,
         {
-          public_id: `exposr/${mockResult.analysisId}`,
+          public_id: `exposr/${analysisResult.analysisId}`,
           folder: "exposr",
           resource_type: "image",
           transformation: [
@@ -278,26 +279,19 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
 
       // Now save to Airtable with Cloudinary image URL
       const record = await base("Analyses").create({
-        Analysis_ID: mockResult.analysisId,
-        Filename: mockResult.filename,
-        Confidence: mockResult.confidence,
-        Verdict: mockResult.verdict,
-        AI_Detected: mockResult.isAI,
-        Timestamp: mockResult.timestamp,
-        File_Format: mockResult.fileFormat,
-        Image_Width: mockResult.imageWidth,
-        Image_Height: mockResult.imageHeight,
-        File_Size_KB: mockResult.fileSizeKB,
+        Analysis_ID: analysisResult.analysisId,
+        Filename: analysisResult.filename,
+        Confidence: analysisResult.confidence,
+        Verdict: analysisResult.verdict,
+        AI_Detected: analysisResult.isAI,
+        Timestamp: analysisResult.timestamp,
+        File_Format: analysisResult.fileFormat,
+        Image_Width: analysisResult.imageWidth,
+        Image_Height: analysisResult.imageHeight,
+        File_Size_KB: analysisResult.fileSizeKB,
         // Store Cloudinary info for deletion
         Cloudinary_Image_ID: cloudinaryImageId,
         Image_URL: imageUrl,
-        // Add other fields as needed
-        Country: "US",
-        Region: "Georgia",
-        Browser: "Mozilla/5.0",
-        Platform: "MacIntel",
-        Language: "en-US",
-        Research_Consent: true,
       });
 
       console.log(
@@ -327,7 +321,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
 
     res.json({
       success: true,
-      data: mockResult,
+      data: analysisResult,
     });
 
     clearTimeout(timeout);

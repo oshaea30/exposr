@@ -12,6 +12,7 @@
     "security:rotate": "node -e \"const s = require('./setup-security.js'); s.setupSecurity();\""
   },
   "dependencies": {
+    "@huggingface/inference": "^4.11.3",
     "airtable": "^0.12.2",
     "axios": "^1.6.0",
     "bcrypt": "^5.1.1",
