@@ -206,4 +206,4 @@ For support, email Criterralabs@gmail.com or create an issue in the repository.
 
 ---
 
-**Built with ❤️ by Criterra Labs**
+**Built with ❤️ by Criterra Labs**# Deployment trigger
