@@ -215,7 +215,18 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       });
     }
 
+    // Parse consent data from request
+    let consent = {};
+    try {
+      if (req.body.consent) {
+        consent = JSON.parse(req.body.consent);
+      }
+    } catch (consentError) {
+      console.log("⚠️ Could not parse consent data, defaulting to no consent");
+    }
+
     console.log("🤖 Analyzing image with Hugging Face SMOGY detector...");
+    console.log("📋 Consent data:", consent);
 
     // Call Hugging Face API for AI detection
     const aiDetectionResult = await hf.imageClassification({
@@ -245,11 +256,15 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       detectionDetails: aiDetectionResult, // Include full detection results
     };
 
-    // Save analysis to Airtable with Cloudinary image upload
+    // Only upload to Cloudinary and save to Airtable if user has given consent
+    const hasResearchConsent = consent[CONSENT_TYPES.RESEARCH_TRAINING] === true;
     let cloudinaryImageId = null;
     let imageUrl = null;
 
-    try {
+    if (hasResearchConsent) {
+      console.log("✅ User has given research consent - proceeding with storage");
+      
+      try {
       console.log("📋 Attempting to save analysis to Airtable...");
       console.log("📁 File info:", {
         name: req.file.originalname,
@@ -298,6 +313,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
         // Store Cloudinary info for deletion
         Cloudinary_Image_ID: cloudinaryImageId,
         Image_URL: imageUrl,
+        Research_Consent: true,
       });
 
       console.log(
@@ -323,6 +339,9 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
           );
         }
       }
+    } else {
+      console.log("🚫 User has NOT given research consent - skipping image storage");
+      console.log("📊 Analysis completed but image will not be saved");
     }
 
     res.json({
