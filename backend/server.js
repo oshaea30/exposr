@@ -265,78 +265,78 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       console.log("✅ User has given research consent - proceeding with storage");
       
       try {
-      console.log("📋 Attempting to save analysis to Airtable...");
-      console.log("📁 File info:", {
-        name: req.file.originalname,
-        size: req.file.size,
-        type: req.file.mimetype,
-      });
-      console.log(
-        "🏷️ Using Analysis_ID for Airtable:",
-        analysisResult.analysisId
-      );
+        console.log("📋 Attempting to save analysis to Airtable...");
+        console.log("📁 File info:", {
+          name: req.file.originalname,
+          size: req.file.size,
+          type: req.file.mimetype,
+        });
+        console.log(
+          "🏷️ Using Analysis_ID for Airtable:",
+          analysisResult.analysisId
+        );
 
-      // Upload image to Cloudinary first
-      console.log("☁️ Uploading image to Cloudinary...");
+        // Upload image to Cloudinary first
+        console.log("☁️ Uploading image to Cloudinary...");
 
-      const uploadResult = await cloudinary.uploader.upload(
-        `data:${req.file.mimetype};base64,${req.file.buffer.toString(
-          "base64"
-        )}`,
-        {
-          public_id: `exposr/${analysisResult.analysisId}`,
-          folder: "exposr",
-          resource_type: "image",
-          transformation: [
-            { width: 1024, height: 1024, crop: "limit" }, // Limit size for better performance
-            { quality: "auto" }, // Optimize quality
-          ],
-        }
-      );
+        const uploadResult = await cloudinary.uploader.upload(
+          `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+            "base64"
+          )}`,
+          {
+            public_id: `exposr/${analysisResult.analysisId}`,
+            folder: "exposr",
+            resource_type: "image",
+            transformation: [
+              { width: 1024, height: 1024, crop: "limit" },
+              { quality: "auto" },
+            ],
+          }
+        );
 
-      cloudinaryImageId = uploadResult.public_id;
-      imageUrl = uploadResult.secure_url;
-      console.log("✅ Image uploaded to Cloudinary:", cloudinaryImageId);
+        cloudinaryImageId = uploadResult.public_id;
+        imageUrl = uploadResult.secure_url;
+        console.log("✅ Image uploaded to Cloudinary:", cloudinaryImageId);
 
-      // Now save to Airtable with Cloudinary image URL
-      const record = await base("Analyses").create({
-        Analysis_ID: analysisResult.analysisId,
-        Filename: analysisResult.filename,
-        Confidence: analysisResult.confidence,
-        Verdict: analysisResult.verdict,
-        AI_Detected: analysisResult.isAI,
-        Timestamp: analysisResult.timestamp,
-        File_Format: analysisResult.fileFormat,
-        Image_Width: analysisResult.imageWidth,
-        Image_Height: analysisResult.imageHeight,
-        File_Size_KB: analysisResult.fileSizeKB,
-        // Store Cloudinary info for deletion
-        Cloudinary_Image_ID: cloudinaryImageId,
-        Image_URL: imageUrl,
-        Research_Consent: true,
-      });
+        // Now save to Airtable with Cloudinary image URL
+        const record = await base("Analyses").create({
+          Analysis_ID: analysisResult.analysisId,
+          Filename: analysisResult.filename,
+          Confidence: analysisResult.confidence,
+          Verdict: analysisResult.verdict,
+          AI_Detected: analysisResult.isAI,
+          Timestamp: analysisResult.timestamp,
+          File_Format: analysisResult.fileFormat,
+          Image_Width: analysisResult.imageWidth,
+          Image_Height: analysisResult.imageHeight,
+          File_Size_KB: analysisResult.fileSizeKB,
+          Cloudinary_Image_ID: cloudinaryImageId,
+          Image_URL: imageUrl,
+          Research_Consent: true,
+        });
 
-      console.log(
-        "✅ Analysis with Cloudinary image saved to Airtable:",
-        record.id
-      );
-      console.log("🔗 Image URL:", imageUrl);
-    } catch (error) {
-      console.error(
-        "❌ Failed to save to Airtable or upload to Cloudinary:",
-        error.message
-      );
+        console.log(
+          "✅ Analysis with Cloudinary image saved to Airtable:",
+          record.id
+        );
+        console.log("🔗 Image URL:", imageUrl);
+      } catch (error) {
+        console.error(
+          "❌ Failed to save to Airtable or upload to Cloudinary:",
+          error.message
+        );
 
-      // If Airtable failed but Cloudinary succeeded, clean up Cloudinary
-      if (cloudinaryImageId) {
-        try {
-          await cloudinary.uploader.destroy(cloudinaryImageId);
-          console.log("🧹 Cleaned up Cloudinary image after Airtable failure");
-        } catch (cleanupError) {
-          console.error(
-            "❌ Failed to cleanup Cloudinary image:",
-            cleanupError.message
-          );
+        // If Airtable failed but Cloudinary succeeded, clean up Cloudinary
+        if (cloudinaryImageId) {
+          try {
+            await cloudinary.uploader.destroy(cloudinaryImageId);
+            console.log("🧹 Cleaned up Cloudinary image after Airtable failure");
+          } catch (cleanupError) {
+            console.error(
+              "❌ Failed to cleanup Cloudinary image:",
+              cleanupError.message
+            );
+          }
         }
       }
     } else {
