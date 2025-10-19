@@ -257,7 +257,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
     };
 
     // Only upload to Cloudinary and save to Airtable if user has given consent
-    const hasResearchConsent = consent[CONSENT_TYPES.RESEARCH_TRAINING] === true;
+    const hasResearchConsent = consent['research_training'] === true;
     let cloudinaryImageId = null;
     let imageUrl = null;
 
