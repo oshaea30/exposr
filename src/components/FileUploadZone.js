@@ -9,7 +9,7 @@ const ConsentCheckbox = ({ consent, onConsentChange }) => (
       <input
         type="checkbox"
         id="research-consent"
-        checked={consent[CONSENT_TYPES.RESEARCH_TRAINING] || false}
+        checked={consent[CONSENT_TYPES.RESEARCH_TRAINING] !== undefined ? consent[CONSENT_TYPES.RESEARCH_TRAINING] : true}
         onChange={(e) => onConsentChange(CONSENT_TYPES.RESEARCH_TRAINING, e.target.checked)}
         className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
       />
