@@ -229,10 +229,22 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
     console.log("📋 Consent data:", consent);
 
     // Call Hugging Face API for AI detection
-    const aiDetectionResult = await hf.imageClassification({
-      data: req.file.buffer,
-      model: "Smogy/SMOGY-Ai-images-detector",
-    });
+    let aiDetectionResult;
+    try {
+      console.log("📡 Calling Hugging Face API...");
+      aiDetectionResult = await hf.imageClassification({
+        data: req.file.buffer,
+        model: "Smogy/SMOGY-Ai-images-detector",
+      });
+      console.log("✅ Hugging Face API response:", aiDetectionResult);
+    } catch (hfError) {
+      console.error("❌ Hugging Face API error:", hfError.message);
+      clearTimeout(timeout);
+      return res.status(500).json({
+        success: false,
+        error: "AI analysis failed - please try again later",
+      });
+    }
 
     // Parse results (returns array like [{label: "ai", score: 0.95}, {label: "real", score: 0.05}])
     const isAI = aiDetectionResult[0].label.toLowerCase() === "ai";
