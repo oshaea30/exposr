@@ -242,6 +242,9 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
     let aiDetectionResult;
     try {
       console.log("📡 Calling Hugging Face API...");
+      console.log("🔑 API Key present:", !!process.env.HUGGINGFACE_API_KEY);
+      console.log("📏 Image size:", req.file.size, "bytes");
+      
       aiDetectionResult = await hf.imageClassification({
         data: req.file.buffer,
         model: "Smogy/SMOGY-Ai-images-detector",
@@ -249,6 +252,7 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       console.log("✅ Hugging Face API response:", aiDetectionResult);
     } catch (hfError) {
       console.error("❌ Hugging Face API error:", hfError.message);
+      console.error("❌ Full error:", hfError);
       clearTimeout(timeout);
       return res.status(500).json({
         success: false,
