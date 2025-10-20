@@ -245,10 +245,9 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       console.log("🔑 API Key present:", !!process.env.HUGGINGFACE_API_KEY);
       console.log("📏 Image size:", req.file.size, "bytes");
       
-      // Try a known working model first for testing
       aiDetectionResult = await hf.imageClassification({
         data: req.file.buffer,
-        model: "google/vit-base-patch16-224", // Known working model
+        model: "Smogy/SMOGY-Ai-images-detector",
       });
       console.log("✅ Hugging Face API response:", aiDetectionResult);
     } catch (hfError) {
