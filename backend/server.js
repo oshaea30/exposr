@@ -215,6 +215,16 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       });
     }
 
+    // Check file size (Vercel has a 4.5MB limit for serverless functions)
+    const maxSizeBytes = 4 * 1024 * 1024; // 4MB limit
+    if (req.file.size > maxSizeBytes) {
+      clearTimeout(timeout);
+      return res.status(413).json({
+        success: false,
+        error: "Image file too large. Please use an image smaller than 4MB.",
+      });
+    }
+
     // Parse consent data from request
     let consent = {};
     try {
