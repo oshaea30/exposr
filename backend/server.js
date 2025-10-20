@@ -22,7 +22,9 @@ cloudinary.config({
 });
 
 // Initialize Hugging Face
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const hf = new HfInference({
+  accessToken: process.env.HUGGINGFACE_API_KEY,
+});
 
 // Security middleware
 app.use(helmet());
@@ -221,7 +223,8 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       clearTimeout(timeout);
       return res.status(413).json({
         success: false,
-        error: "Image file too large. Please compress your image or use a smaller file.",
+        error:
+          "Image file too large. Please compress your image or use a smaller file.",
       });
     }
 
@@ -244,10 +247,10 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       console.log("📡 Calling Hugging Face API...");
       console.log("🔑 API Key present:", !!process.env.HUGGINGFACE_API_KEY);
       console.log("📏 Image size:", req.file.size, "bytes");
-      
+
       aiDetectionResult = await hf.imageClassification({
         data: req.file.buffer,
-        model: "Smogy/SMOGY-Ai-images-detector",
+        model: "google/vit-base-patch16-224", // Test with known working model
       });
       console.log("✅ Hugging Face API response:", aiDetectionResult);
     } catch (hfError) {
@@ -283,13 +286,15 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
     };
 
     // Only upload to Cloudinary and save to Airtable if user has given consent
-    const hasResearchConsent = consent['research_training'] === true;
+    const hasResearchConsent = consent["research_training"] === true;
     let cloudinaryImageId = null;
     let imageUrl = null;
 
     if (hasResearchConsent) {
-      console.log("✅ User has given research consent - proceeding with storage");
-      
+      console.log(
+        "✅ User has given research consent - proceeding with storage"
+      );
+
       try {
         console.log("📋 Attempting to save analysis to Airtable...");
         console.log("📁 File info:", {
@@ -356,7 +361,9 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
         if (cloudinaryImageId) {
           try {
             await cloudinary.uploader.destroy(cloudinaryImageId);
-            console.log("🧹 Cleaned up Cloudinary image after Airtable failure");
+            console.log(
+              "🧹 Cleaned up Cloudinary image after Airtable failure"
+            );
           } catch (cleanupError) {
             console.error(
               "❌ Failed to cleanup Cloudinary image:",
@@ -366,7 +373,9 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
         }
       }
     } else {
-      console.log("🚫 User has NOT given research consent - skipping image storage");
+      console.log(
+        "🚫 User has NOT given research consent - skipping image storage"
+      );
       console.log("📊 Analysis completed but image will not be saved");
     }
 
