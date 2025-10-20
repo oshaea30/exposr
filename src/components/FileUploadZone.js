@@ -3,6 +3,53 @@ import { Upload, Info } from 'lucide-react';
 import { Button } from './ui';
 import { BUTTON_VARIANTS, CONSENT_TYPES } from '../constants';
 
+// Image compression utility
+const compressImage = (file, maxSizeMB = 4) => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // Calculate new dimensions (max 1920px width/height)
+      const maxDimension = 1920;
+      let { width, height } = img;
+      
+      if (width > height && width > maxDimension) {
+        height = (height * maxDimension) / width;
+        width = maxDimension;
+      } else if (height > maxDimension) {
+        width = (width * maxDimension) / height;
+        height = maxDimension;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Try different quality levels until we get under the size limit
+      let quality = 0.8;
+      const tryCompress = () => {
+        canvas.toBlob((blob) => {
+          const sizeMB = blob.size / (1024 * 1024);
+          if (sizeMB <= maxSizeMB || quality <= 0.1) {
+            resolve(blob);
+          } else {
+            quality -= 0.1;
+            tryCompress();
+          }
+        }, 'image/jpeg', quality);
+      };
+      
+      tryCompress();
+    };
+    
+    img.src = URL.createObjectURL(file);
+  });
+};
+
 const ConsentCheckbox = ({ consent, onConsentChange }) => (
   <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
     <div className="flex items-start space-x-3">
@@ -48,9 +95,27 @@ const PrivacyNotice = () => (
 const FileUploadZone = ({ onFileSelect, dragActive, onDragHandlers, consent, onConsentChange }) => {
   const fileInputRef = useRef(null);
   
-  const handleFileInput = (e) => {
+  const handleFileInput = async (e) => {
     if (e.target.files && e.target.files[0]) {
-      onFileSelect(e.target.files[0], consent);
+      const file = e.target.files[0];
+      
+      // Check if file is too large and needs compression
+      const maxSizeMB = 4;
+      const fileSizeMB = file.size / (1024 * 1024);
+      
+      if (fileSizeMB > maxSizeMB) {
+        console.log(`📸 Compressing image from ${fileSizeMB.toFixed(1)}MB to under ${maxSizeMB}MB...`);
+        try {
+          const compressedFile = await compressImage(file, maxSizeMB);
+          console.log(`✅ Compressed to ${(compressedFile.size / (1024 * 1024)).toFixed(1)}MB`);
+          onFileSelect(compressedFile, consent);
+        } catch (error) {
+          console.error('❌ Compression failed:', error);
+          onFileSelect(file, consent); // Fallback to original file
+        }
+      } else {
+        onFileSelect(file, consent);
+      }
     }
   };
   
