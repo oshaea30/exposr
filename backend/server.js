@@ -39,7 +39,7 @@ async function analyzeImageWithHuggingFace(cloudinaryUrl) {
     // Call Deepfake Detection Model
     console.log("🤖 Calling Hugging Face Deepfake Detection model...");
     const DEEPFAKE_URL =
-      "https://api-inference.huggingface.co/models/Hemg/Deepfake-Detection";
+      "https://router.huggingface.co/hf-inference/models/Hemg/Deepfake-Detection";
 
     const deepfakeResponse = await fetch(DEEPFAKE_URL, {
       method: "POST",
@@ -57,7 +57,7 @@ async function analyzeImageWithHuggingFace(cloudinaryUrl) {
 
       // Fallback to Google ViT for content classification
       const HF_URL =
-        "https://api-inference.huggingface.co/models/google/vit-base-patch16-224";
+        "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224";
       const hfResponse = await fetch(HF_URL, {
         method: "POST",
         headers: {
