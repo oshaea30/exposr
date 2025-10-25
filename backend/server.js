@@ -36,12 +36,17 @@ async function analyzeImageWithHuggingFace(cloudinaryUrl) {
     const imageBuffer = await imageResponse.arrayBuffer();
     console.log("✅ Image downloaded, size:", imageBuffer.byteLength, "bytes");
 
-    // Call Deepfake Detection Model
-    console.log("🤖 Calling Hugging Face Deepfake Detection model...");
-    const DEEPFAKE_URL =
-      "https://router.huggingface.co/hf-inference/models/Hemg/Deepfake-Detection";
+    // Call AI-Generated Image Detection Model
+    console.log(
+      "🤖 Calling Hugging Face AI-Generated Image Detection model..."
+    );
+    console.log("📊 Image buffer size:", imageBuffer.byteLength, "bytes");
+    console.log("📊 Image buffer type:", typeof imageBuffer);
 
-    const deepfakeResponse = await fetch(DEEPFAKE_URL, {
+    const AI_DETECTION_URL =
+      "https://router.huggingface.co/hf-inference/models/Hemg/ai-vs-real-image-detection";
+
+    const aiDetectionResponse = await fetch(AI_DETECTION_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
@@ -50,9 +55,9 @@ async function analyzeImageWithHuggingFace(cloudinaryUrl) {
       body: imageBuffer,
     });
 
-    if (!deepfakeResponse.ok) {
-      const errorText = await deepfakeResponse.text();
-      console.log("⚠️ Deepfake detection failed, trying fallback model...");
+    if (!aiDetectionResponse.ok) {
+      const errorText = await aiDetectionResponse.text();
+      console.log("⚠️ AI detection failed, trying fallback model...");
       console.log("Error:", errorText);
 
       // Fallback to Google ViT for content classification
@@ -79,8 +84,8 @@ async function analyzeImageWithHuggingFace(cloudinaryUrl) {
       return result.sort((a, b) => b.score - a.score);
     }
 
-    const result = await deepfakeResponse.json();
-    console.log("✅ Deepfake Detection API response:", result);
+    const result = await aiDetectionResponse.json();
+    console.log("✅ AI Detection API response:", result);
 
     // Result format: [{ label: "Fake", score: 0.91 }, { label: "Real", score: 0.09 }] or similar
     // Sort by score descending to get highest confidence result first
@@ -361,17 +366,13 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Parse Deepfake Detection results - format: [{ label: "Fake" or "Real", score: 0.95 }]
+    // Parse AI Detection results - format: [{ label: "ai" or "hum", score: 0.95 }]
     const topResult = aiDetectionResult[0];
     const confidence = Math.round((topResult?.score || 0) * 100);
 
-    // Check if the label indicates AI/Fake
+    // Check if the label indicates AI-generated
     const label = topResult?.label?.toLowerCase() || "";
-    const isAI =
-      label.includes("fake") ||
-      label.includes("deepfake") ||
-      label.includes("synthetic") ||
-      label.includes("ai-generated");
+    const isAI = label === "ai" || label.includes("ai");
 
     const analysisId = Math.random().toString(36).substring(2, 15);
 
