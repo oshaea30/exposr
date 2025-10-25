@@ -8,6 +8,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 export const analyzeImageWithBackend = async (file, consent = {}) => {
   try {
     console.log("📤 Sending image to backend for analysis...");
+    console.log("📋 Consent data:", consent);
+    console.log("📋 Consent stringified:", JSON.stringify(consent));
 
     // Create FormData to send file
     const formData = new FormData();

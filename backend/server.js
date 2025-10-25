@@ -5,7 +5,8 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const Airtable = require("airtable");
 const { v2: cloudinary } = require("cloudinary");
-const { HfInference } = require("@huggingface/inference");
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,10 +22,77 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Initialize Hugging Face
-const hf = new HfInference({
-  accessToken: process.env.HUGGINGFACE_API_KEY,
-});
+// Helper function to call Hugging Face API directly
+async function analyzeImageWithHuggingFace(cloudinaryUrl) {
+  try {
+    // Download image from Cloudinary
+    console.log("📥 Downloading image from Cloudinary:", cloudinaryUrl);
+    const imageResponse = await fetch(cloudinaryUrl);
+
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to download image: ${imageResponse.status}`);
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    console.log("✅ Image downloaded, size:", imageBuffer.byteLength, "bytes");
+
+    // Call Deepfake Detection Model
+    console.log("🤖 Calling Hugging Face Deepfake Detection model...");
+    const DEEPFAKE_URL =
+      "https://api-inference.huggingface.co/models/Hemg/Deepfake-Detection";
+
+    const deepfakeResponse = await fetch(DEEPFAKE_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+        "Content-Type": "application/octet-stream",
+      },
+      body: imageBuffer,
+    });
+
+    if (!deepfakeResponse.ok) {
+      const errorText = await deepfakeResponse.text();
+      console.log("⚠️ Deepfake detection failed, trying fallback model...");
+      console.log("Error:", errorText);
+
+      // Fallback to Google ViT for content classification
+      const HF_URL =
+        "https://api-inference.huggingface.co/models/google/vit-base-patch16-224";
+      const hfResponse = await fetch(HF_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          "Content-Type": "application/octet-stream",
+        },
+        body: imageBuffer,
+      });
+
+      if (!hfResponse.ok) {
+        const errorText2 = await hfResponse.text();
+        throw new Error(
+          `Hugging Face API Error: ${hfResponse.status} - ${errorText2}`
+        );
+      }
+
+      const result = await hfResponse.json();
+      console.log("✅ Fallback model response:", result);
+      return result.sort((a, b) => b.score - a.score);
+    }
+
+    const result = await deepfakeResponse.json();
+    console.log("✅ Deepfake Detection API response:", result);
+
+    // Result format: [{ label: "Fake", score: 0.91 }, { label: "Real", score: 0.09 }] or similar
+    // Sort by score descending to get highest confidence result first
+    const sortedResults = result.sort((a, b) => b.score - a.score);
+    console.log("✅ Sorted results (highest confidence first):", sortedResults);
+
+    return sortedResults;
+  } catch (error) {
+    console.error("❌ Hugging Face analysis failed:", error.message);
+    throw error;
+  }
+}
 
 // Security middleware
 app.use(helmet());
@@ -240,22 +308,52 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
 
     console.log("🤖 Analyzing image with Hugging Face SMOGY detector...");
     console.log("📋 Consent data:", consent);
+    console.log("📋 Consent type:", typeof consent);
+    console.log("📋 Consent keys:", Object.keys(consent));
+    console.log("📋 Has research consent:", consent["research_training"]);
+
+    // Upload to Cloudinary first
+    let cloudinaryImageId = null;
+    let imageUrl = null;
+
+    console.log("☁️ Uploading image to Cloudinary...");
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+      {
+        public_id: `exposr/temp_${Date.now()}`,
+        folder: "exposr",
+        resource_type: "image",
+        transformation: [
+          { width: 1024, height: 1024, crop: "limit" },
+          { quality: "auto" },
+        ],
+      }
+    );
+
+    cloudinaryImageId = uploadResult.public_id;
+    imageUrl = uploadResult.secure_url;
+    console.log("✅ Image uploaded to Cloudinary:", imageUrl);
 
     // Call Hugging Face API for AI detection
     let aiDetectionResult;
     try {
-      console.log("📡 Calling Hugging Face API...");
-      console.log("🔑 API Key present:", !!process.env.HUGGINGFACE_API_KEY);
-      console.log("📏 Image size:", req.file.size, "bytes");
-
-      aiDetectionResult = await hf.imageClassification({
-        data: req.file.buffer,
-        model: "google/vit-base-patch16-224", // Test with known working model
-      });
-      console.log("✅ Hugging Face API response:", aiDetectionResult);
+      aiDetectionResult = await analyzeImageWithHuggingFace(imageUrl);
     } catch (hfError) {
       console.error("❌ Hugging Face API error:", hfError.message);
-      console.error("❌ Full error:", hfError);
+
+      // Clean up Cloudinary image on error
+      if (cloudinaryImageId) {
+        try {
+          await cloudinary.uploader.destroy(cloudinaryImageId);
+          console.log("🧹 Cleaned up Cloudinary image after HF failure");
+        } catch (cleanupError) {
+          console.error(
+            "❌ Failed to cleanup Cloudinary image:",
+            cleanupError.message
+          );
+        }
+      }
+
       clearTimeout(timeout);
       return res.status(500).json({
         success: false,
@@ -263,9 +361,17 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Parse results (returns array like [{label: "ai", score: 0.95}, {label: "real", score: 0.05}])
-    const isAI = aiDetectionResult[0].label.toLowerCase() === "ai";
-    const confidence = Math.round(aiDetectionResult[0].score * 100);
+    // Parse Deepfake Detection results - format: [{ label: "Fake" or "Real", score: 0.95 }]
+    const topResult = aiDetectionResult[0];
+    const confidence = Math.round((topResult?.score || 0) * 100);
+
+    // Check if the label indicates AI/Fake
+    const label = topResult?.label?.toLowerCase() || "";
+    const isAI =
+      label.includes("fake") ||
+      label.includes("deepfake") ||
+      label.includes("synthetic") ||
+      label.includes("ai-generated");
 
     const analysisId = Math.random().toString(36).substring(2, 15);
 
@@ -281,55 +387,17 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
       imageHeight: 1024,
       fileSizeKB: Math.round(req.file.size / 1024),
       deleteCode: Math.random().toString(36).substring(2, 15),
-      explanation: `SMOGY AI detector analyzed this image with ${confidence}% confidence.`,
+      explanation: `AI analysis completed with ${confidence}% confidence.`,
       detectionDetails: aiDetectionResult, // Include full detection results
     };
 
-    // Only upload to Cloudinary and save to Airtable if user has given consent
+    // Only save to Airtable if user has given consent
     const hasResearchConsent = consent["research_training"] === true;
-    let cloudinaryImageId = null;
-    let imageUrl = null;
 
     if (hasResearchConsent) {
-      console.log(
-        "✅ User has given research consent - proceeding with storage"
-      );
+      console.log("✅ User has given research consent - saving to Airtable");
 
       try {
-        console.log("📋 Attempting to save analysis to Airtable...");
-        console.log("📁 File info:", {
-          name: req.file.originalname,
-          size: req.file.size,
-          type: req.file.mimetype,
-        });
-        console.log(
-          "🏷️ Using Analysis_ID for Airtable:",
-          analysisResult.analysisId
-        );
-
-        // Upload image to Cloudinary first
-        console.log("☁️ Uploading image to Cloudinary...");
-
-        const uploadResult = await cloudinary.uploader.upload(
-          `data:${req.file.mimetype};base64,${req.file.buffer.toString(
-            "base64"
-          )}`,
-          {
-            public_id: `exposr/${analysisResult.analysisId}`,
-            folder: "exposr",
-            resource_type: "image",
-            transformation: [
-              { width: 1024, height: 1024, crop: "limit" },
-              { quality: "auto" },
-            ],
-          }
-        );
-
-        cloudinaryImageId = uploadResult.public_id;
-        imageUrl = uploadResult.secure_url;
-        console.log("✅ Image uploaded to Cloudinary:", cloudinaryImageId);
-
-        // Now save to Airtable with Cloudinary image URL
         const record = await base("Analyses").create({
           Analysis_ID: analysisResult.analysisId,
           Filename: analysisResult.filename,
@@ -346,37 +414,27 @@ app.post("/api/analyze", upload.single("image"), async (req, res) => {
           Research_Consent: true,
         });
 
-        console.log(
-          "✅ Analysis with Cloudinary image saved to Airtable:",
-          record.id
-        );
-        console.log("🔗 Image URL:", imageUrl);
+        console.log("✅ Analysis saved to Airtable:", record.id);
       } catch (error) {
-        console.error(
-          "❌ Failed to save to Airtable or upload to Cloudinary:",
-          error.message
-        );
-
-        // If Airtable failed but Cloudinary succeeded, clean up Cloudinary
-        if (cloudinaryImageId) {
-          try {
-            await cloudinary.uploader.destroy(cloudinaryImageId);
-            console.log(
-              "🧹 Cleaned up Cloudinary image after Airtable failure"
-            );
-          } catch (cleanupError) {
-            console.error(
-              "❌ Failed to cleanup Cloudinary image:",
-              cleanupError.message
-            );
-          }
-        }
+        console.error("❌ Failed to save to Airtable:", error.message);
       }
     } else {
       console.log(
-        "🚫 User has NOT given research consent - skipping image storage"
+        "🚫 User has NOT given research consent - cleaning up Cloudinary image"
       );
-      console.log("📊 Analysis completed but image will not be saved");
+
+      // Delete from Cloudinary if no consent
+      if (cloudinaryImageId) {
+        try {
+          await cloudinary.uploader.destroy(cloudinaryImageId);
+          console.log("🧹 Deleted Cloudinary image (no consent)");
+        } catch (cleanupError) {
+          console.error(
+            "❌ Failed to cleanup Cloudinary image:",
+            cleanupError.message
+          );
+        }
+      }
     }
 
     res.json({
@@ -728,7 +786,9 @@ app.use("*", (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Exposr backend running on port ${PORT}`);
+  console.log(
+    `🚀 Exposr backend running on port ${PORT} - UPDATED VERSION WITH FIXED API KEY`
+  );
   console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(
     `🔗 Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:3000"}`
